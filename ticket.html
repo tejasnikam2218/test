@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRRCH Hospital Ticketing</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif;}
+body{background:linear-gradient(135deg,#f0f4f8,#d9e2ef);}
+
+/* LOGIN */
+#loginBox{background:#fff;width:360px;padding:40px 35px;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,0.15);text-align:center;margin:80px auto;transition:0.3s;}
+#loginBox:hover{transform:translateY(-3px);}
+#loginBox h2{margin-bottom:30px;color:#2d8cf0;font-size:28px;font-weight:600;}
+#loginBox input{width:100%;padding:14px 12px;margin:14px 0;border-radius:10px;border:1px solid #ccc;font-size:15px;transition:0.3s;}
+#loginBox input:focus{border-color:#2d8cf0;box-shadow:0 0 8px rgba(45,140,240,0.25);outline:none;}
+#loginBox button{width:100%;padding:14px;background:#2d8cf0;color:white;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:0.3s;margin-top:10px;}
+#loginBox button:hover{background:#1c6dd0;}
+.error{color:red;font-size:14px;margin-top:10px;}
+
+/* TICKET */
+#ticketBox{display:none;max-width:1050px;margin:40px auto;padding:30px;border-radius:15px;background:#fff;box-shadow:0 6px 25px rgba(0,0,0,0.12);}
+#ticketHeader{background:#2d8cf0;color:white;padding:18px 25px;border-radius:12px 12px 0 0;font-size:22px;font-weight:600;text-align:center;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;}
+#ticketBox h3{text-align:center;margin-bottom:25px;color:#1c3f6f;font-size:24px;}
+.row{display:flex;gap:20px;flex-wrap:wrap;}
+.form-group{flex:1;min-width:250px;margin-bottom:20px;}
+label{font-weight:600;margin-bottom:6px;display:block;color:#333;}
+input,select,textarea{width:100%;padding:14px 12px;border-radius:10px;border:1px solid #ccc;font-size:14px;transition:0.3s;}
+input:focus,select:focus,textarea:focus{border-color:#2d8cf0;box-shadow:0 0 6px rgba(45,140,240,0.2);outline:none;}
+textarea{min-height:120px;resize:vertical;}
+.radio-group{display:flex;gap:25px;flex-wrap:wrap;align-items:center;}
+.radio-group label{font-weight:normal;cursor:pointer;}
+.footer{display:flex;justify-content:flex-end;margin-top:25px;}
+.btn-submit{padding:14px 28px;font-size:16px;border-radius:10px;border:none;background:#2d8cf0;color:white;cursor:pointer;font-weight:600;transition:0.3s;}
+.btn-submit:hover{background:#1c6dd0;}
+.btn-line-save{padding:6px 12px;background:#28a745;color:white;border:none;border-radius:6px;cursor:pointer;transition:0.3s;}
+.btn-line-save:hover{background:#218838;}
+.btn-line-edit{padding:6px 12px;background:#ffc107;color:white;border:none;border-radius:6px;cursor:pointer;transition:0.3s;margin-left:5px;}
+.btn-line-edit:hover{background:#e0a800;}
+.btn-logout{padding:8px 16px;background:#dc3545;color:white;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
+.btn-logout:hover{background:#c82333;}
+
+/* TICKET LIST TABLE */
+#ticketList{margin-top:20px;width:100%;border-collapse:collapse;}
+#ticketList th,#ticketList td{border:1px solid #ccc;padding:10px;text-align:left;}
+#ticketList th{background:#2d8cf0;color:white;}
+#ticketList td select{width:100%;}
+
+/* SEARCH BAR */
+#searchTicket{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-top:5px;}
+
+/* Responsive */
+@media(max-width:600px){.row{flex-direction:column;}.footer{flex-direction:column;}.btn-submit{width:100%;margin-top:10px;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<h2>MRRCH Hospital</h2>
+<input type="text" id="username" placeholder="Enter Username">
+<input type="password" id="password" placeholder="Enter Password">
+<button onclick="login()">Login</button>
+<div class="error" id="loginError"></div>
+</div>
+
+<!-- TICKET FORM -->
+<div id="ticketBox">
+<div id="ticketHeader">
+<span>MRRCH Hospital Ticketing System</span>
+<button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+<h3>⚠ Ticket Details</h3>
+
+<div class="row">
+<div class="form-group">
+<label>Product</label>
+<select id="product">
+<option value="">Select Product</option>
+<option>HIMS</option>
+<option>EMR</option>
+</select>
+</div>
+<div class="form-group">
+<label>Module</label>
+<select id="module">
+<option value="">Select Module</option>
+<option>IPD</option>
+<option>OPD</option>
+<option>Stores</option>
+<option>Diagnostics</option>
+<option>Billing</option>
+<option>Masters</option>
+<option>FrontOffice</option>
+<option>OT</option>
+<option>Appointments</option>
+<option>RIS</option>
+<option>Nurse Station</option>
+<option>MRD</option>
+</select>
+</div>
+</div>
+
+<div class="form-group">
+<label>Ticket No *</label>
+<input type="text" id="ticketNo" placeholder="Enter Ticket Number" required>
+</div>
+<div class="form-group">
+<label>Ticket Description</label>
+<textarea id="description" placeholder="Enter description..."></textarea>
+</div>
+
+<div class="form-group">
+<label>Priority</label>
+<div class="radio-group">
+<label><input type="radio" name="priority" value="Critical"> Critical</label>
+<label><input type="radio" name="priority" value="High"> High</label>
+<label><input type="radio" name="priority" value="Medium"> Medium</label>
+<label><input type="radio" name="priority" value="Low"> Low</label>
+</div>
+</div>
+
+<div class="row">
+<div class="form-group">
+<label>Date of Occurrence</label>
+<input type="date" id="date">
+</div>
+<div class="form-group">
+<label>Status</label>
+<select id="status">
+<option>Open</option>
+<option>Closed</option>
+<option>Completed</option>
+<option>On Hold</option>
+<option>Reject</option>
+</select>
+</div>
+</div>
+
+<div class="form-group">
+<label>Comments</label>
+<textarea id="comments" placeholder="Add additional comments..."></textarea>
+</div>
+
+<div class="form-group">
+<label>Attachments</label>
+<input type="file" id="attachment">
+</div>
+
+<div class="footer">
+<button class="btn-submit" onclick="addOrUpdateTicket()">Submit</button>
+</div>
+
+<!-- Export Button -->
+<div style="margin-top:20px;margin-bottom:10px; text-align:right;">
+    <button class="btn-submit" onclick="exportToExcel()">Export to Excel</button>
+</div>
+
+<!-- SEARCH -->
+<div style="margin-top:20px;margin-bottom:10px;">
+<label for="searchTicket">Search Tickets:</label>
+<input type="text" id="searchTicket" placeholder="Search by Ticket No, Product, Module, Description, Comments" onkeyup="searchTickets()">
+</div>
+
+<!-- Ticket List -->
+<table id="ticketList">
+<thead>
+<tr>
+<th>Ticket No</th>
+<th>Product</th>
+<th>Module</th>
+<th>Description</th>
+<th>Priority</th>
+<th>Date</th>
+<th>Status</th>
+<th>Comments</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="ticketBody"></tbody>
+</table>
+
+</div>
+
+<script>
+let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+let editIndex = -1;
+
+// LOGIN
+function login() {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    if(username==="Mrrch" && password==="12345") {
+        document.getElementById("loginBox").style.display="none";
+        document.getElementById("ticketBox").style.display="block";
+        renderTickets();
+    } else {
+        document.getElementById("loginError").innerText="Invalid Username or Password";
+    }
+}
+
+// LOGOUT
+function logout() {
+    document.getElementById("loginBox").style.display="block";
+    document.getElementById("ticketBox").style.display="none";
+    document.getElementById("username").value="";
+    document.getElementById("password").value="";
+}
+
+// ADD / UPDATE TICKET
+function addOrUpdateTicket() {
+    const ticketNo = document.getElementById("ticketNo").value.trim();
+    if(ticketNo==="") { alert("Ticket No is required!"); return; }
+
+    if(editIndex===-1){
+        if(tickets.some(t=>t.ticketNo===ticketNo)){ alert("Ticket No already exists!"); return; }
+        const ticket = getFormData();
+        tickets.push(ticket);
+    } else {
+        tickets[editIndex] = getFormData();
+        editIndex=-1;
+    }
+    localStorage.setItem('tickets', JSON.stringify(tickets));
+    renderTickets();
+    resetForm();
+}
+
+function getFormData(){
+    return {
+        ticketNo: document.getElementById("ticketNo").value,
+        product: document.getElementById("product").value,
+        module: document.getElementById("module").value,
+        description: document.getElementById("description").value,
+        priority: document.querySelector('input[name="priority"]:checked') ? document.querySelector('input[name="priority"]:checked').value : "",
+        date: document.getElementById("date").value,
+        status: document.getElementById("status").value,
+        comments: document.getElementById("comments").value
+    };
+}
+
+function resetForm() {
+    document.getElementById("ticketNo").value="";
+    document.getElementById("description").value="";
+    document.getElementById("comments").value="";
+    document.getElementById("product").value="";
+    document.getElementById("module").value="";
+    document.querySelectorAll('input[name="priority"]').forEach(i=>i.checked=false);
+    document.getElementById("date").value="";
+    document.getElementById("status").value="Open";
+}
+
+// RENDER
+function renderTickets(filteredTickets = tickets) {
+    const tbody = document.getElementById("ticketBody");
+    tbody.innerHTML = "";
+    filteredTickets.forEach((t,i)=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${t.ticketNo}</td>
+            <td>${t.product}</td>
+            <td>${t.module}</td>
+            <td>${t.description}</td>
+            <td>${t.priority}</td>
+            <td>${t.date}</td>
+            <td>
+                <select id="statusSelect${i}">
+                    <option ${t.status==='Open'?'selected':''}>Open</option>
+                    <option ${t.status==='Closed'?'selected':''}>Closed</option>
+                    <option ${t.status==='Completed'?'selected':''}>Completed</option>
+                    <option ${t.status==='On Hold'?'selected':''}>On Hold</option>
+                    <option ${t.status==='Reject'?'selected':''}>Reject</option>
+                </select>
+            </td>
+            <td>${t.comments}</td>
+            <td>
+                <button class="btn-line-save" onclick="saveStatus(${i})">Save</button>
+                <button class="btn-line-edit" onclick="editTicket(${i})">Edit</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// SAVE STATUS
+function saveStatus(index){
+    const select = document.getElementById(`statusSelect${index}`);
+    tickets[index].status = select.value;
+    localStorage.setItem('tickets', JSON.stringify(tickets));
+    alert(`Ticket ${tickets[index].ticketNo} status updated to ${select.value}`);
+}
+
+// EDIT TICKET
+function editTicket(index){
+    const t = tickets[index];
+    document.getElementById("ticketNo").value = t.ticketNo;
+    document.getElementById("product").value = t.product;
+    document.getElementById("module").value = t.module;
+    document.getElementById("description").value = t.description;
+    document.querySelectorAll('input[name="priority"]').forEach(i=>i.checked=i.value===t.priority);
+    document.getElementById("date").value = t.date;
+    document.getElementById("status").value = t.status;
+    document.getElementById("comments").value = t.comments;
+    editIndex = index;
+}
+
+// SEARCH
+function searchTickets() {
+    const query = document.getElementById('searchTicket').value.toLowerCase();
+    const filtered = tickets.filter(t=>{
+        return t.ticketNo.toLowerCase().includes(query) ||
+               t.product.toLowerCase().includes(query) ||
+               t.module.toLowerCase().includes(query) ||
+               t.description.toLowerCase().includes(query) ||
+               t.comments.toLowerCase().includes(query) ||
+               t.status.toLowerCase().includes(query);
+    });
+    renderTickets(filtered);
+}
+
+// EXPORT TO EXCEL (CSV) using Blob
+function exportToExcel() {
+    if(tickets.length === 0) { 
+        alert("No tickets to export!"); 
+        return; 
+    }
+
+    const headers = ["Ticket No","Product","Module","Description","Priority","Date","Status","Comments"];
+    let csvRows = [];
+    csvRows.push(headers.join(","));
+
+    tickets.forEach(t => {
+        const row = [
+            `"${t.ticketNo}"`,
+            `"${t.product}"`,
+            `"${t.module}"`,
+            `"${t.description}"`,
+            `"${t.priority}"`,
+            `"${t.date}"`,
+            `"${t.status}"`,
+            `"${t.comments}"`
+        ];
+        csvRows.push(row.join(","));
+    });
+
+    const csvString = csvRows.join("\r\n");
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "MRRCH_Tickets.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Load tickets from LocalStorage on page load
+if(localStorage.getItem('tickets')){
+    tickets = JSON.parse(localStorage.getItem('tickets'));
+}
+</script>
+
+</body>
+</html>
